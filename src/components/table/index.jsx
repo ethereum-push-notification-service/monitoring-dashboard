@@ -18,8 +18,8 @@ export default function BasicTable({ data }) {
         <TableHead>
           <TableRow>
             <TableCell>Channel Name</TableCell>
-            <TableCell align="right">Notification Triggered</TableCell>
             <TableCell align="right">Notification Sent</TableCell>
+            <TableCell align="right">Notification Failed</TableCell>
             <TableCell align="right">Job Time Start</TableCell>
             <TableCell align="right">Job Time End</TableCell>
           </TableRow>
@@ -30,10 +30,10 @@ export default function BasicTable({ data }) {
               <TableCell component="th" scope="row">
                 {row.channelName}
               </TableCell>
-              <TableCell align="right">{row.notificationCount}</TableCell>
-              <TableCell align="right">{row.notificationCount - row.failedNotificationCount}</TableCell>
-              <TableCell align="right">{parseDateTime(row.date)}</TableCell>
-              <TableCell align="right">{parseDateTime(row.endDateTime)}</TableCell>
+              <TableCell align="right">{row.sentNotificationCount}</TableCell>
+              <TableCell align="right">{row.failedNotificationCount}</TableCell>
+              <TableCell align="right">{parseDateTime(row.startedAt)}</TableCell>
+              <TableCell align="right">{parseDateTime(row.endedAt)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

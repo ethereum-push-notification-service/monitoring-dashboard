@@ -10,20 +10,18 @@ export default function Health() {
     {
       type: 'PING',
       name: 'Showrunners',
-      url: `${urls.SHOWRUNNERS_URL}/monitoring/getnotificationbydate`,
-      body: {query: {date: {$gte: 1658790000000, $lte: 1658790000000}}},
+      method: 'post',
+      url: `${urls.SHOWRUNNERS_URL}/analytics/querylog`,
+      body: { filter: { date: { $gte: 1658790000000, $lte: 1658790000000 } } },
     },
     {
       type: 'PING',
       name: 'Push Nodes',
-      url: `${urls.BACKEND_URL}/channels/fetch_channels`,
-      body: {
-        pageSize: 10,
-        page: 1,
-        op: 'write',
-      },
+      method: 'get',
+      url: `${urls.BACKEND_URL}/channels/search?page=1&limit=30&order=desc&query=io`,
     },
   ];
+
   return (
     <Layout title="health">
       <Container maxWidth="xl" sx={{ minHeight: '80vh' }}>
@@ -34,9 +32,9 @@ export default function Health() {
         </Grid>
 
         <Grid container spacing={2}>
-          {HEALTH_SERVICES.map((oneService) => {
-            return <HealthItem service={oneService} />;
-          })}
+          {HEALTH_SERVICES.map((oneService, index) => (
+            <HealthItem key={index} service={oneService} />
+          ))}
         </Grid>
       </Container>
     </Layout>
@@ -44,22 +42,22 @@ export default function Health() {
 }
 
 const HealthItem = ({ service }) => {
-  const { type, name, url, body } = service;
+  const { type, name, url, body, method } = service;
   // error, warning, info, error
   const [status, setStatus] = useState('info');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!url) return;
-    axios
-      .post(url, { ...body })
+    const axiosPromise = method === 'post' ? axios.post(url, { ...body }) : axios.get(url);
+    axiosPromise
       .then((res) => {
-        // console.log({ res });
-        setStatus('success')
+        console.log({ res });
+        setStatus('success');
       })
       .catch((err) => {
-        // console.log(err);
-        setStatus('error')
+        console.log(err);
+        setStatus('error');
       })
       .finally(() => {
         setLoading(false);

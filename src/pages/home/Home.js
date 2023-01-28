@@ -38,43 +38,37 @@ const Home = () => {
   useEffect(() => {
     const start = +moment(selectedDate).startOf('day').format('X') * 1000;
     const endDate = +moment(selectedDate).endOf('day').format('X') * 1000;
-    setDone(false);
     // fetch the data from the backend
+    setDone(false);
     setLoading(true);
+
     axios
-      .post(`${urls.SHOWRUNNERS_URL}/monitoring/getnotificationbydate`, {
-        query: { date: { $gte: start, $lte: endDate } },
+      .post(`${urls.SHOWRUNNERS_URL}/analytics/querylog`, {
+        filter: { startedAt: { $gte: start, $lte: endDate } },
       })
       .then(({ data: response }) => {
         setData(response);
       })
-      .catch(() => {
-        setLoading(false);
-      })
       .finally(() => {
         setDone(true);
+        setLoading(false);
+
       });
   }, [selectedDate]);
 
   useEffect(() => {
-    if (!done) return;
-    axios
-      .post(`${urls.BACKEND_URL}/channels/search`, { query: '0x', op: 'read', page: 1, pageSize: 1000 })
-      .then(({ data: { count: response } }) => {
-        console.log({ data });
-        const uniqueChannelsTriggered = [...new Set(data.map(({ channelAddress }) => channelAddress))];
-        const totalNotificationsSent = data.reduce((a, b) => a + b.notificationCount, 0);
-        setAllChannels([...new Set(data.map(({ channelName }) => channelName))]);
-        setSummary({
-          totalChannels: response,
-          triggeredChannels: uniqueChannelsTriggered.length,
-          totalNotifications: totalNotificationsSent,
-        });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    console.log({ data });
+    const uniqueChannelsTriggered = [...new Set(data.map(({ channelAddress }) => channelAddress))];
+    const totalNotificationsSent = data.reduce((a, b) => a + b.sentNotificationCount, 0);
+    setAllChannels([...new Set(data.map(({ channelName }) => channelName)), "pipi"]);
+    setSummary({
+      totalChannels: [],
+      triggeredChannels: uniqueChannelsTriggered.length,
+      totalNotifications: totalNotificationsSent,
+    });
   }, [data, done]);
+
+
 
   return (
     <Layout title="Dashboard">
@@ -113,7 +107,7 @@ const Home = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <AppWidgetSummary
-              title="Total Notifications Sent"
+              title="Total Notification(s) Sent"
               total={summary.totalNotifications}
               icon={'ant-design:bell-filled'}
             />
@@ -121,7 +115,7 @@ const Home = () => {
 
           <Grid item xs={12} sm={6} md={4}>
             <AppWidgetSummary
-              title="Channels triggered"
+              title="Channel(s) triggered"
               total={summary.triggeredChannels}
               color="warning"
               icon={'ant-design:bell-filled'}
@@ -155,8 +149,8 @@ const Home = () => {
                     label="Channel"
                     onChange={handleChange}
                   >
-                    {allChannels.map((oneChannel) => (
-                      <MenuItem value={oneChannel}>{oneChannel}</MenuItem>
+                    {allChannels.map((oneChannel, i) => (
+                      <MenuItem key={i} value={oneChannel}>{oneChannel}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
