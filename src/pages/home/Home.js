@@ -14,6 +14,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import { getAllChannels } from 'utils/functions';
 import { AppWidgetSummary } from './components';
 
 const DEFAULT_STATE = {
@@ -52,7 +53,6 @@ const Home = () => {
       .finally(() => {
         setDone(true);
         setLoading(false);
-
       });
   }, [selectedDate]);
 
@@ -60,15 +60,23 @@ const Home = () => {
     console.log({ data });
     const uniqueChannelsTriggered = [...new Set(data.map(({ channelAddress }) => channelAddress))];
     const totalNotificationsSent = data.reduce((a, b) => a + b.sentNotificationCount, 0);
-    setAllChannels([...new Set(data.map(({ channelName }) => channelName)), "pipi"]);
+    setAllChannels([...new Set(data.map(({ channelName }) => channelName))]);
     setSummary({
-      totalChannels: [],
+      totalChannels: 0,
       triggeredChannels: uniqueChannelsTriggered.length,
       totalNotifications: totalNotificationsSent,
     });
   }, [data, done]);
 
-
+  useEffect(() => {
+    (async () => {
+      const allChannels = await getAllChannels();
+      setSummary((s) => ({
+        ...s,
+        totalChannels: allChannels.length,
+      }));
+    })();
+  }, []);
 
   return (
     <Layout title="Dashboard">
@@ -150,7 +158,9 @@ const Home = () => {
                     onChange={handleChange}
                   >
                     {allChannels.map((oneChannel, i) => (
-                      <MenuItem key={i} value={oneChannel}>{oneChannel}</MenuItem>
+                      <MenuItem key={i} value={oneChannel}>
+                        {oneChannel}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
